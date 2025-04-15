@@ -122,6 +122,9 @@ export default function Home() {
   return (
     <main className="p-4 max-w-3xl mx-auto">
       <h1 className="text-3xl font-extrabold mb-6 text-center">Weight Tracker</h1>
+      <div className="text-sm text-center mb-2 text-gray-500">
+        Storage: {process.env.NEXT_PUBLIC_USE_LOCAL_STORAGE === "true" ? "Local (per-device)" : "Cloud (shared across devices)"}
+      </div>
       
       <Card className="mb-8">
         <CardHeader>

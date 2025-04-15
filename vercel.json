@@ -1,0 +1,5 @@
+{
+  "env": {
+    "NEXT_PUBLIC_USE_LOCAL_STORAGE": "false"
+  }
+} 

@@ -52,7 +52,11 @@ export async function GET() {
             
             if (blobExists) {
               // Blob exists, fetch it using the public URL
-              const res = await fetch(`https://blob.vercel-storage.com/${BLOB_NAME}`);
+              const blobUrl = blobs.blobs.find(blob => blob.pathname === BLOB_NAME)?.url;
+              if (!blobUrl) {
+                throw new Error("Blob exists but URL is missing");
+              }
+              const res = await fetch(blobUrl);
               if (!res.ok) {
                 throw new Error(`Failed to fetch blob: ${res.status} ${res.statusText}`);
               }
@@ -82,12 +86,24 @@ export async function GET() {
         }
         
         // Fallback: try public URL if token approach fails
-        const res = await fetch(`https://blob.vercel-storage.com/${BLOB_NAME}`);
-        if (!res.ok) {
-          throw new Error(`Failed to fetch blob from public URL: ${res.status} ${res.statusText}`);
+        try {
+          console.log("Trying fallback approach...");
+          const STORE_ID = process.env.VERCEL_BLOB_STORE_ID;
+          if (!STORE_ID) {
+            throw new Error("Missing VERCEL_BLOB_STORE_ID environment variable");
+          }
+          const publicUrl = `https://${STORE_ID}.public.blob.vercel-storage.com/${BLOB_NAME}`;
+          console.log("Using public URL:", publicUrl);
+          const res = await fetch(publicUrl);
+          if (!res.ok) {
+            throw new Error(`Failed to fetch blob from public URL: ${res.status} ${res.statusText}`);
+          }
+          const data = await res.json();
+          return NextResponse.json(data);
+        } catch (fallbackError) {
+          console.error("Error in fallback approach:", fallbackError);
+          return NextResponse.json([]);
         }
-        const data = await res.json();
-        return NextResponse.json(data);
       } catch (error) {
         console.error("Error fetching from Vercel Blob:", error);
         return NextResponse.json([]);
@@ -125,6 +141,7 @@ export async function POST(req: Request) {
             contentType: "application/json",
             access: "public",
             token: BLOB_TOKEN,
+            allowOverwrite: true
           });
           console.log("Data saved to Vercel Blob successfully");
           return NextResponse.json({ success: true });
