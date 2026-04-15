@@ -1,5 +1,9 @@
 {
+  "ignoreCommand": "exit 0",
+  "github": {
+    "enabled": false
+  },
   "env": {
     "NEXT_PUBLIC_USE_LOCAL_STORAGE": "false"
   }
-} 
+}
